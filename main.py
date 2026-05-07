@@ -1,4 +1,3 @@
-from sqlalchemy import update
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi import FastAPI, HTTPException, Depends
 from typing import Annotated
