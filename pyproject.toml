@@ -1,0 +1,14 @@
+[project]
+name = "user-db"
+version = "0.1.0"
+description = "TESTING SQLALCHEMY"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.136.1",
+    "pandas>=3.0.2",
+    "psycopg2>=2.9.12",
+    "pydantic[email]>=2.13.3",
+    "sqlalchemy>=2.0.49",
+    "uvicorn>=0.46.0",
+]
