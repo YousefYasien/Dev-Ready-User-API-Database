@@ -116,12 +116,30 @@ curl -X DELETE http://127.0.0.1:8000/users/delete/1
 - If found: returns the deleted user payload.
 - If not found / error: returns a **404** with details.
 
+### 5) Update a user
+
+**PUT** `/users/update/{user_id}`
+
+Updates only fields provided in the request body.
+
+Request body example:
+
+```json
+{
+  "first_name": "Johnny",
+  "email": "johnny@example.com"
+}
+```
+
+> Notes: update payload fields follow the same names as the database columns: `first_name`, `last_name`, `email`, `gender`, `country`.
+
 ## Notes / Caveats
 
-- The app uses a global SQLAlchemy session object (`session = sessionmaker(... )()`). This works for simple demos, but for production you’d typically create a session per request.
+- The app uses a global SQLAlchemy session object (`session = sessionmaker(... )`). This works for simple demos, but for production you’d typically create a session per request.
 - The delete endpoint attempts to return the deleted record; if the record doesn’t exist, it returns the result of the lookup (which may be `null` depending on how SQLAlchemy behaves).
 
 ## Project files
 
-- `main.py`: FastAPI app + SQLAlchemy model + endpoints
+- `main.py`: FastAPI app + endpoints
+- `models.py`: SQLAlchemy model + Pydantic schemas
 - `user_data.db`: SQLite database file used at runtime
