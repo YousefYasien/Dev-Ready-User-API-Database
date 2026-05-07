@@ -1,4 +1,4 @@
-# user_db (FastAPI + SQLite + SQLAlchemy)
+# users database (FastAPI + SQLite + SQLAlchemy)
 
 A small FastAPI service for managing users stored in a local SQLite database.
 
