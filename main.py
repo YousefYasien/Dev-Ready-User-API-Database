@@ -62,7 +62,7 @@ def delete_user(user_id: int, db: db_dependency):
 
 
 @app.put('/users/update/{user_id}', response_model=UserResponse)
-async def update_user(user_id: int, upd_user: UserUpdate, db: db_dependency):
+def update_user(user_id: int, upd_user: UserUpdate, db: db_dependency):
     user = db.get(user_data, user_id)
     if not user:
         raise HTTPException(status_code=404, detail='user not found')
