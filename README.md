@@ -27,6 +27,8 @@ This repo includes `pyproject.toml` and `uv.lock`. If you use **uv**:
 uv sync
 ```
 
+You can also try it out on: https://dev-ready-user-api-database.onrender.com/
+
 ## Run the API server
 
 From the project root (`y:/yousef/learning/python/user_db`):
