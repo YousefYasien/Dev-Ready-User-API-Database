@@ -49,5 +49,5 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    gender: Optional[Literal['Male', 'Female']]
-    country: Optional[str]
+    gender: Optional[Literal['Male', 'Female']]= None
+    country: Optional[str] = None
