@@ -26,7 +26,7 @@ def get_users(db: db_dependency):
 
 
 @app.get('/users/get-user/{user_id}', response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int, db: db_dependency):
     user = db.get(user_data, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -34,7 +34,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post('/users/create', response_model=UserCreate, status_code=201)
-def add_user(user: UserCreate, db: Session = Depends(get_db)):
+def add_user(user: UserCreate, db: db_dependency):
     new_user = user_data(**user.model_dump())
     db.add(new_user)
 
@@ -48,7 +48,7 @@ def add_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @app.delete('/users/delete/{user_id}', response_model=DeleteUserResponse)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: db_dependency):
     try:
         user_to_delete = db.get(user_data, user_id)
         if user_to_delete:
@@ -62,7 +62,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.put('/users/update/{user_id}', response_model=UserResponse)
-async def update_user(user_id: int, upd_user: UserUpdate, db: db_dependency):
+def update_user(user_id: int, upd_user: UserUpdate, db: db_dependency):
     user = db.get(user_data, user_id)
     if not user:
         raise HTTPException(status_code=404, detail='user not found')

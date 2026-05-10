@@ -1,7 +1,7 @@
 [project]
 name = "user-db"
 version = "0.1.0"
-description = "TESTING SQLALCHEMY"
+description = "A high-performance, asynchronous REST API built with FastAPI and SQLAlchemy."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
