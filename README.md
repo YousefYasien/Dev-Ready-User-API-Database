@@ -1,145 +1,234 @@
-# User DB API (FastAPI + SQLite + SQLAlchemy)
+# Engineering Specification and Operational Manual
 
-A small FastAPI service for managing users stored in a local SQLite database.
+**Project Identifier:** User Database RESTful Application Interface  
+**System Core:** FastAPI / SQLAlchemy ORM / SQLite DB  
+**Version:** 0.1.0  
+**Target Environment:** Production / Staging
 
-## Features
+---
 
-- FastAPI REST API
-- SQLAlchemy ORM model backed by SQLite (`user_data.db`)
-- Pydantic schemas for request/response validation
+## 1. System Overview and Architecture
 
-## Tech stack
+This service provides a standardized, high-performance RESTful API designed to execute Create, Read, Update, and Delete (CRUD) operations against an underlying relational database layer.
 
-- Python
-- FastAPI
-- SQLAlchemy
-- Pydantic
+The architecture utilizes a declarative data layer coupled with schema reflection to interface with pre-existing database structures without code-level duplication.
 
-## Requirements
+### Key Technical Parameters
 
-- Python 3.10+
+- **High-Performance Routing:** Asynchronous endpoint execution via FastAPI.
+- **Relational Mapping:** SQLAlchemy Object-Relational Mapper (ORM).
+- **Dynamic Schema Mapping:** Runtime reflection using the `autoload_with` protocol.
+- **Strict Type Assertion:** Data parsing and validation via Pydantic.
 
-## Installation
+---
 
-This repo includes `pyproject.toml` and `uv.lock`. If you use **uv**:
+## 2. Architectural Hardening and Security
+
+To ensure structural integrity and mitigate operational risk, the application implements layers of operational hardening.
+
+### A. Rate Limiting Middleware
+
+- **Mechanics:** Per-client in-memory sliding window evaluated per request.
+- **Threshold:** Maximum of 100 requests per 60-second operational window.
+- **Enforcement:** Exceeded limits trigger immediate termination of the request lifecycle, returning **HTTP 429 (Too Many Requests)**.
+
+### B. Atomic Transaction Isolation
+
+- Engine interactions are isolated via contextual session states.
+- Database failures are prevented from corrupting persisted state by relying on SQLAlchemy transactional semantics.
+
+### C. Centralized Exception Handling
+
+- Runtime exceptions are intercepted at the root boundary by a global handler.
+- Detailed stack traces are redirected to secure system logs.
+- The public-facing presentation layer safely exposes no architectural details, returning a generic **HTTP 500 (Internal Server Error)**.
+
+---
+
+## 3. System Requirements and Initialization
+
+### Minimum Interpreter Level
+
+- Python 3.10 or higher
+
+### System Dependencies
+
+The deployment workspace maps dependencies deterministically through:
+
+- `pyproject.toml`
+- `uv.lock`
+
+### Critical Deployment Prerequisite
+
+The validation schema utilizes advanced regex pattern matching for email fields.
+
+The system environment must have the `email-validator` package successfully installed prior to application execution.
+
+### Environment Synchronization
 
 ```bash
 uv sync
 ```
 
-You can also try it out on: https://dev-ready-user-api-database.onrender.com/
+### Application Server Instantiation
 
-## Run the API server
-
-From the project root (`y:/yousef/learning/python/user_db`):
+Execute the ASGI server wrapper from the repository root:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-After starting, open:
+### Exposed Network Interfaces
 
-- Swagger UI: http://127.0.0.1:8000/docs
-- OpenAPI schema: http://127.0.0.1:8000/openapi.json
+- **Swagger UI Documentation:** <http://127.0.0.1:8000/docs>
+- **OpenAPI JSON Schema:** <http://127.0.0.1:8000/openapi.json>
 
-## Database
+---
 
-- SQLite database file: `user_data.db` (project root)
-- Table name: `user_data`
-- Columns:
-  - `id` (BigInteger, primary key, autoincrement)
-  - `first_name`
-  - `last_name`
-  - `email` (optional)
-  - `gender` (`Male` or `Female`)
-  - `country`
+## 4. Database Matrix Schema Specification
 
-> Implementation note: the SQLAlchemy model is configured with `__table_args__ = {'autoload_with': engine}`.
-> That means the table must already exist in the SQLite database.
+### Persistent Storage
 
-## API Reference
+- **Database Engine:** SQLite
+- **Database File:** `user_data.db`
+- **Table Name:** `user_data`
 
-### 1) List all users
+### Schema Composition
 
-**GET** `/users`
+| Column       | Type       | Constraints                          |
+| ------------ | ---------- | ------------------------------------ |
+| `id`         | BigInteger | Primary Key, Auto-increment, Indexed |
+| `first_name` | String     | Max 50 characters, Not Null          |
+| `last_name`  | String     | Max 50 characters, Not Null          |
+| `email`      | String     | Email syntax validated, Nullable     |
+| `gender`     | String     | Must be `"Male"` or `"Female"`       |
+| `country`    | String     | Max 30 characters, Not Null          |
+
+### Operational Constraint Notice
+
+Because the data model utilizes runtime reflection (`autoload_with`), the database file and target relational schema must physically exist before the ASGI application initializes.
+
+Failure to ensure this state will induce a fatal `NoSuchTableError` during startup.
+
+---
+
+## 5. Application Programming Interface (API) Specification
+
+### 5.1 Retrieve All Active Records
+
+- **Route:** `GET /users`
+- **Access Type:** Public
+- **Response:** `Array[UserResponse]`
+
+#### Example
 
 ```bash
 curl http://127.0.0.1:8000/users
 ```
 
-### 2) Get a user by id
+---
 
-**GET** `/users/get-user/{user_id}`
+### 5.2 Retrieve Specific Record by Unique Identifier
+
+- **Route:** `GET /users/get-user/{user_id}`
+- **Access Type:** Public
+- **Response:** `UserResponse`
+- **Success Status:** `HTTP 200`
+
+#### Example
 
 ```bash
 curl http://127.0.0.1:8000/users/get-user/1
 ```
 
-If the user does not exist, the API returns:
+#### Error Response
 
 ```json
-{ "detail": "User not found" }
+{
+  "detail": "User not found"
+}
 ```
 
-### 3) Create a new user
+**Status:** `HTTP 404`
 
-**POST** `/users/create` (returns `201`)
+---
 
-Request body:
+### 5.3 Introduce New Record
+
+- **Route:** `POST /users/create`
+- **Access Type:** Public
+- **Request Body:** `UserCreate`
+- **Response:** `UserResponse`
+- **Success Status:** `HTTP 201 Created`
+
+#### Example Payload
 
 ```json
 {
   "first_name": "John",
   "last_name": "Doe",
-  "email": "john@example.com",
+  "email": "john.doe@example.com",
   "gender": "Male",
   "country": "USA"
 }
 ```
 
-Field rules:
+---
 
-- `first_name`: max length 50
-- `last_name`: max length 50
-- `email`: optional (must be a valid email if provided)
-- `gender`: must be `Male` or `Female`
-- `country`: max length 30
+### 5.4 Mutate Existing Record Attributes (Partial Modification)
 
-### 4) Update a user
+- **Route:** `PUT /users/update/{user_id}`
+- **Access Type:** Public
+- **Request Body:** `UserUpdate`
+- **Response:** `UserResponse`
+- **Success Status:** `HTTP 200`
 
-**PUT** `/users/update/{user_id}`
+#### Operational Logic
 
-Updates only the fields provided in the request body.
+Only fields explicitly supplied in the request payload are modified.
 
-Example request:
+Unspecified attributes remain unchanged.
+
+#### Example Payload
 
 ```json
 {
   "first_name": "Johnny",
-  "email": "johnny@example.com"
+  "email": "johnny.dev@example.com"
 }
 ```
 
-Updateable fields use the same names as the database columns: `first_name`, `last_name`, `email`, `gender`, `country`.
+---
 
-### 5) Delete a user
+### 5.5 Purge System Record
 
-**DELETE** `/users/delete/{user_id}`
+- **Route:** `DELETE /users/delete/{user_id}`
+- **Access Type:** Public
+- **Response:** `UserResponse | null`
+- **Success Status:** `HTTP 200`
+
+#### Example
 
 ```bash
 curl -X DELETE http://127.0.0.1:8000/users/delete/1
 ```
 
-- If found: returns the deleted user payload.
-- If not found / error: returns a `404` with details.
+#### Operational Logic
 
-## Notes / Caveats
+- **Record Exists:** Deletes the entry and returns the deleted record payload.
+- **Record Missing:** Returns JSON `null` to maintain backend type stability.
 
-- The app uses a simple dependency that opens/closes a SQLAlchemy session.
-- The delete endpoint attempts to return the deleted record; if it doesn’t exist, behavior depends on the lookup result.
+---
 
-## Project structure
+## 6. Component Blueprint Map
 
-- `main.py`: FastAPI app + endpoints
-- `models.py`: SQLAlchemy ORM model + Pydantic schemas
-- `user_data.db`: SQLite database file used at runtime
+| File           | Responsibility                                                                    |
+| -------------- | --------------------------------------------------------------------------------- |
+| `main.py`      | Routing, initialization, middleware runtime throttling, and global error handling |
+| `models.py`    | ORM engine setup, table reflection, and Pydantic schema definitions               |
+| `helper.py`    | Query management, patch logic, and exception handling utilities                   |
+| `user_data.db` | Active SQLite database file                                                       |
+
+---
+
+**End of Specification Document**

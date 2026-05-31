@@ -5,6 +5,7 @@ description = "A high-performance, asynchronous REST API built with FastAPI and 
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "bandit>=1.9.4",
     "fastapi>=0.136.1",
     "pandas>=3.0.2",
     "psycopg2>=2.9.12",
